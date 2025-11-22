@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="logo">Balkan Flix</div>
+<nav>
+<button>Home</button>
+<button>Katalog</button>
+<button>Premium</button>
+</nav>
+<!-------------------------------------------------------------------------------------------------------------->
+<div class="right">
+<input type="text" id="search" placeholder="Pretraži filmove, serije...">
+<button class="btn login-btn">Prijava</button>
+</div>
+<!-------------------------------------------------------------------------------------------------------------->
+<main>
+<section class="hero">
+<h1>Gledaj najpoznatije naslove - sa bilo kog dela Balkana</h1>
+<p>Originalne i lokalne i strane serije, filmovi i muzički sadržaji.</p>
+<div class="hero-buttons">
+<button class="btn btn-red" id="startBtn">Započni besplatno</button>
+<button class="btn btn-dark">Saznaj više</button>
+</div>
+</section>
+<section class="categories" id="categories">
+<!-- Kategorije dugmad preko JS -->
+</section>
+
+<!------------------------------------------------------------------------------------------------------------->
+
+<section class="grid-section">
+<div class="grid" id="grid">
+<!-- Kartice filmova preko JS -->
+</div>
+<div class="no-results" id="noResults">Nema rezultata</div>
+</section>
+</main>
+<!------------------------------------------------------------------------------------------------------------->
+<div class="modal" id="modal">
+<div class="modal-box">
+<div class="modal-header">
+<div id="modalTitle" class="modal-title">Naslov</div>
+<button id="closeModal" class="btn close-btn">Zatvori</button>
+</div>
+<div class="modal-video">Video plejer placeholder</div>
+</div>
+</div>
+<!-------------------------------------------------------------------------------------------------------------------------->
+<footer>
+  <div class="footer-pricing">
+    <h2>Cenovnik</h2>
+    <ul class="pricing-list">
+  <li>
+    <div class="pricing-price">5 €/mesec</div>
+    <div class="pricing-desc">1080p 30fps, bez reklama</div>
+  </li>
+  <li>
+    <div class="pricing-price">10 €/mesec</div>
+    <div class="pricing-desc">2400p 60fps, bez reklama</div>
+  </li>
+  <li>
+    <div class="pricing-price">15 €/mesec</div>
+    <div class="pricing-desc">4k 120fps, bez reklama i hd kvalitet</div>
+  </li>
+</ul>
+  </div>
+  <div class="footer-bottom">
+    © BalkanskiFlix — fikcija<br>
+    Jezici: srpski, hrvatski, bosanski, makedonski
+  </div>
+</footer>
+<!------------------------------------------------------------------------------------------------------------------------------------------------->
+<script>
+const movies = [
+  { id: 1, title: 'Spiderman: No way home', category: 'Action', year: 2021, duration: '2h 28m', thumb: 'spiderman.jpg', trailer: 'SPIDER-MAN NO WAY HOME - Official Trailer (HD) - Sony Pictures Entertainment (1080p, h264).mp4' },
+  { id: 2, title: 'LaLaLand', category: 'Romance' + 'Music', year: 2016, duration: '2h 8m', thumb: 'lalaland.jpg', trailer: 'lalaland.mp4' },
+  { id: 3, title: 'Interstellar', category: 'Sci-fi', year: 2014, duration: '2h 49m', thumb: 'interstelar.jpg', trailer: 'interstellar.mp4' },
+  { id: 4, title: '2012', category: 'Chaos', year: 2009, duration: '2h 38m', thumb: '2012.jpg', trailer: '2012.mp4' },
+  { id: 5, title: 'Dumb and dumber', category: 'Comedy', year: 1994, duration: '1h 47m', thumb: 'dumbanddumber.jpg', trailer: 'd&d.mp4' },
+];
+
+const categories = ['All','Action','Thriller','Comedy','Advanture','Music', 'Chaos', 'Sci-fi'];
+const grid = document.getElementById('grid');
+const catsEl = document.getElementById('categories');
+const search = document.getElementById('search');
+const noResults = document.getElementById('noResults');
+const modal = document.getElementById('modal');
+const modalTitle = document.getElementById('modalTitle');
+const closeModal = document.getElementById('closeModal');
+
+let activeCategory = 'All';
+let query = '';
+
+function renderCategories(){
+  catsEl.innerHTML='';
+  categories.forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.textContent=cat;
+    btn.className = cat===activeCategory?'activeCat':'';
+    btn.addEventListener('click',()=>{
+      activeCategory=cat; 
+      render(); 
+      renderCategories();
+    });
+    catsEl.appendChild(btn);
+  });
+}
+
+function openModal(movie){
+  modalTitle.textContent = movie.title;
+
+  // Ubacivanje lokalnog video fajla
+  const videoDiv = modal.querySelector('.modal-video');
+  videoDiv.innerHTML = `
+    <video width="100%" height="100%" controls autoplay>
+      <source src="${movie.trailer}" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  `;
+
+  modal.classList.add('open');
+}
+
+function close(){
+  modal.classList.remove('open');
+  // Zaustavlja video kada se zatvori modal
+  const videoDiv = modal.querySelector('.modal-video');
+  videoDiv.innerHTML = '';
+}
+
+closeModal.addEventListener('click', close);
+modal.addEventListener('click',(e)=>{ if(e.target===modal) close(); });
+search.addEventListener('input',(e)=>{ query=e.target.value; render(); });
+
+function render(){
+  const filtered = movies.filter(m=> 
+    (activeCategory==='All'||m.category===activeCategory) && 
+    m.title.toLowerCase().includes(query.toLowerCase())
+  );
+  grid.innerHTML='';
+  noResults.style.display = filtered.length===0?'block':'none';
+
+  filtered.forEach(m=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML = `
+      <img src="${m.thumb}" alt="${m.title}">
+      <div class="info">
+        <div class="title">${m.title}</div>
+        <div class="meta">${m.year} • ${m.duration}</div>
+      </div>
+    `;
+    const btn=document.createElement('button');
+    btn.className='play-btn';
+    btn.innerHTML='▶';
+    btn.addEventListener('click',()=>openModal(m));
+    card.appendChild(btn);
+    grid.appendChild(card);
+  });
+}
+
+renderCategories();
+render();
+
+
+</script>
+<!--------------------------------------------------------------------------------------------------------------------------------->
+</body>
+</html>
